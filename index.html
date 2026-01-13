@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>LOMNUER — Love Love Mystery Club Edition</title>
+<title>LOMNUER — Love Love Mystery Club</title>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@200;300;400;600&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -12,407 +12,366 @@
     --accent: #00f2ff;
     --bg-dark: #0a0a0c;
     --glass: rgba(15, 15, 20, 0.85);
-    --font-main: 'Prompt', sans-serif;
 }
 
-* { font-family: var(--font-main); box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+* { font-family: 'Prompt', sans-serif; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { height: 100%; width: 100%; margin: 0; background: #000; color: #fff; overflow: hidden; }
 
-/* Fade transition */
+/* Transitions */
 #fadeLayer { position: fixed; inset: 0; background: #000; z-index: 9999; pointer-events: none; opacity: 0; transition: opacity .8s; }
+#narration { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 8000; display: none; align-items: center; justify-content: center; text-align: center; padding: 40px; }
+.narr-text { font-size: 1.4rem; line-height: 1.8; font-weight: 300; animation: fadeUp 0.6s ease; }
 
-/* Top Navigation (Show only on Map) */
-#topUI { 
-    position: fixed; top: 0; left: 0; width: 100%; z-index: 500; 
-    display: none; flex-direction: column; align-items: center; 
-    padding: 20px; pointer-events: none; 
-}
-#timeline { display: flex; gap: 12px; margin-bottom: 15px; }
-.tl-step { 
-    background: rgba(0,0,0,0.6); padding: 8px 16px; border-radius: 20px; 
-    font-size: 0.8rem; border: 1px solid rgba(255,255,255,0.1); color: #888; 
-}
-.tl-step.active { 
-    background: var(--primary); color: #fff; border-color: #fff; 
-    box-shadow: 0 0 15px var(--primary); font-weight: 600;
-}
-
+/* Top UI HUD */
+#topUI { position: fixed; top: 0; left: 0; width: 100%; z-index: 500; display: none; flex-direction: column; align-items: center; padding: 20px; pointer-events: none; }
+#timeline { display: flex; gap: 10px; margin-bottom: 12px; }
+.tl-step { background: rgba(0,0,0,0.6); padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; border: 1px solid rgba(255,255,255,0.1); color: #888; }
+.tl-step.active { background: var(--primary); color: #fff; border-color: #fff; box-shadow: 0 0 10px var(--primary); }
 #globalStatus { display: flex; align-items: center; gap: 15px; pointer-events: auto; }
-.day-box { 
-    background: linear-gradient(90deg, var(--primary), var(--secondary)); 
-    padding: 8px 24px; border-radius: 12px; font-weight: 700; font-size: 1.1rem; 
-    box-shadow: 0 5px 15px rgba(0,0,0,0.4); 
-}
-.time-box { font-size: 1rem; letter-spacing: 2px; border-left: 2px solid var(--primary); padding-left: 15px; color: #eee; }
+.day-box { background: linear-gradient(90deg, var(--primary), var(--secondary)); padding: 6px 20px; border-radius: 10px; font-weight: 700; font-size: 1rem; }
 
 /* Screens */
 .screen { position: absolute; inset: 0; display: none; background-size: cover; background-position: center; flex-direction: column; }
 .active { display: flex; }
 
-/* Lobby UI */
-#lobby { background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('ภาพหน้าlobby.jpg') center/cover; align-items: center; justify-content: center; }
-.play-btn { 
-    width: 150px; height: 150px; border-radius: 50%; border: 4px solid #fff; 
-    background: rgba(255, 45, 85, 0.2); color: #fff; font-size: 24px; font-weight: 700; 
-    cursor: pointer; backdrop-filter: blur(8px); transition: 0.4s; 
-    animation: pulse-btn 2s infinite;
-}
-.play-btn:hover { transform: scale(1.1); background: var(--primary); }
+/* Lobby */
+#lobby { background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('ภาพหน้าlobby.jpg') center/cover; align-items: center; justify-content: center; }
+.play-btn { width: 140px; height: 140px; border-radius: 50%; border: 4px solid #fff; background: rgba(255, 45, 85, 0.2); color: #fff; font-size: 1.5rem; font-weight: 700; cursor: pointer; backdrop-filter: blur(8px); animation: pulse 2s infinite; }
 
 /* Map Markers */
 #map-screen { background: url('map.jpg') center/cover; }
-.map-marker { 
-    position: absolute; width: 56px; height: 56px; border-radius: 50%; 
-    background: var(--primary); border: 3px solid #fff; display: flex; 
-    align-items: center; justify-content: center; font-weight: 800; 
-    cursor: pointer; box-shadow: 0 0 25px var(--primary); 
-    animation: marker-float 1.5s infinite alternate; 
-}
+.map-marker { position: absolute; width: 50px; height: 50px; border-radius: 50%; background: var(--primary); border: 3px solid #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; cursor: pointer; box-shadow: 0 0 20px var(--primary); animation: float 1.5s infinite alternate; }
 
-/* Profile Modal */
-#profileModal { 
-    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); 
-    width: 380px; background: var(--glass); backdrop-filter: blur(20px); 
-    padding: 30px; border-radius: 24px; display: none; 
-    border: 1px solid rgba(255,255,255,0.15); z-index: 1000; text-align: center; 
-}
-.pf-avatar { width: 130px; height: 130px; border-radius: 50%; margin: 0 auto 20px; border: 4px solid var(--primary); background-size: cover; background-position: center; }
-.pf-name { font-size: 1.6rem; font-weight: 700; color: #fff; margin-bottom: 8px; }
-.pf-bio { font-size: 0.95rem; color: #bbb; margin-bottom: 25px; line-height: 1.5; }
-.pf-btns { display: flex; gap: 12px; }
-.btn-pf { flex: 1; padding: 14px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; transition: 0.3s; }
-.btn-pf.start { background: var(--primary); color: #fff; }
-.btn-pf.cancel { background: rgba(255,255,255,0.1); color: #fff; }
+/* Choice Overlay */
+#choice-screen { background-color: #000; justify-content: flex-end; padding-bottom: 80px; align-items: center; }
+.choice-list { width: 90%; max-width: 480px; display: flex; flex-direction: column; gap: 12px; }
+.btn-choice { background: rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 18px; border-radius: 12px; cursor: pointer; text-align: left; font-size: 1rem; transition: 0.3s; backdrop-filter: blur(10px); }
+.btn-choice:hover { background: var(--primary); transform: scale(1.02); }
 
 /* Video & Call */
 video { width: 100%; height: 100%; object-fit: cover; }
-#call-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(15px); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; }
-.call-card { text-align: center; animation: call-shake 0.5s infinite; }
-.call-pfp { width: 160px; height: 160px; border-radius: 50%; border: 5px solid #4cd964; margin: 0 auto 25px; background: url('โปรไฟล์ลมเหนือ.jpg') center/cover; }
-.call-btns { display: flex; gap: 50px; margin-top: 40px; }
-.c-btn { width: 75px; height: 75px; border-radius: 50%; border: none; font-size: 2rem; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-.c-btn.accept { background: #4cd964; box-shadow: 0 0 20px rgba(76,217,100,0.5); }
-.c-btn.decline { background: #ff3b30; box-shadow: 0 0 20px rgba(255,59,48,0.5); }
+#call-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.9); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; }
+.call-pfp { width: 150px; height: 150px; border-radius: 50%; border: 4px solid #4cd964; margin-bottom: 20px; background: url('โปรไฟล์ลมเหนือ.jpg') center/cover; }
 
-/* Choice Screen */
-#choice-screen { background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)), url('ภาพนิ่งฉากแรกตอนทางเลือก.jpg') center/cover; justify-content: flex-end; padding-bottom: 100px; align-items: center; }
-.choice-list { width: 90%; max-width: 450px; display: flex; flex-direction: column; gap: 15px; }
-.btn-choice { background: var(--glass); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 20px; border-radius: 15px; cursor: pointer; text-align: center; font-size: 1.05rem; transition: 0.3s; backdrop-filter: blur(10px); }
-.btn-choice:hover { background: var(--primary); border-color: #fff; transform: translateY(-3px); }
-
-/* Chat Screen */
-#chat-screen { background: #0f1015; }
-.chat-head { height: 80px; background: #1a1b22; display: flex; align-items: center; padding: 0 20px; border-bottom: 1px solid #2a2b32; }
-.chat-body { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
-.msg { padding: 12px 18px; border-radius: 20px; max-width: 75%; line-height: 1.5; font-size: 0.95rem; }
-.msg.him { background: #25262e; color: #eee; align-self: flex-start; border-bottom-left-radius: 4px; }
+/* Chat UI */
+#chat-screen { background: #0b0c10; }
+.chat-body { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding-bottom: 120px; }
+.msg { padding: 10px 16px; border-radius: 18px; max-width: 80%; line-height: 1.5; font-size: 0.95rem; }
+.msg.him { background: #1f2029; color: #fff; align-self: flex-start; border-bottom-left-radius: 4px; }
 .msg.me { background: var(--primary); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
-.chat-input-area { background: #1a1b22; padding: 15px; display: none; flex-direction: column; gap: 10px; }
+.chat-input-area { position: fixed; bottom: 0; width: 100%; background: #16171d; padding: 15px; display: none; flex-direction: column; gap: 10px; }
 
-/* Narration */
-#narration { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 8000; display: none; align-items: center; justify-content: center; text-align: center; padding: 50px; font-size: 1.3rem; line-height: 1.8; color: #fff; font-weight: 300; }
-
-/* Result */
-#result-screen { justify-content: center; align-items: center; background: #050507; }
-.result-card { background: var(--glass); padding: 40px; border-radius: 30px; border: 1px solid var(--primary); width: 85%; text-align: center; }
-
-/* DAM Overlay */
-#damOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9000; display: none; align-items: center; justify-content: center; }
-.dam-box { width: 85%; max-width: 420px; background: #151518; padding: 25px; border-radius: 25px; border: 1px solid var(--primary); }
-.dam-box img { width: 100%; border-radius: 15px; margin-bottom: 20px; }
-
-/* IG */
-#ig-screen { background: #000; display: none; align-items: center; justify-content: center; }
-.ig-card { width: 100%; max-width: 500px; background: #fff; color: #000; border-radius: 15px; overflow: hidden; }
+/* IG Profile */
+#ig-screen { background: #000; }
+.ig-card { height: 100%; display: flex; flex-direction: column; color: #fff; overflow-y: auto; }
+.ig-header { padding: 20px; display: flex; align-items: center; gap: 20px; }
+.ig-pfp { width: 80px; height: 80px; border-radius: 50%; background: url('โปรไฟล์ดำ.jpg') center/cover; border: 2px solid #333; }
+.ig-btn { flex: 1; padding: 8px; border-radius: 5px; border: none; font-weight: 600; cursor: pointer; }
 
 /* Animations */
-@keyframes pulse-btn { 0% { box-shadow: 0 0 0 0 rgba(255, 45, 85, 0.6); } 70% { box-shadow: 0 0 0 20px rgba(255, 45, 85, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 45, 85, 0); } }
-@keyframes marker-float { from { transform: translateY(0); } to { transform: translateY(-12px); } }
-@keyframes call-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 45, 85, 0.5); } 70% { box-shadow: 0 0 0 20px rgba(255, 45, 85, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 45, 85, 0); } }
+@keyframes float { from { transform: translateY(0); } to { transform: translateY(-10px); } }
+@keyframes fadeUp { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+
 </style>
 </head>
 <body>
 
 <div id="fadeLayer"></div>
-<div id="narration"></div>
+<div id="narration"><div class="narr-text" id="narrText"></div></div>
 
 <div id="topUI">
     <div id="timeline">
-        <div class="tl-step active" id="tl-1">DAY 01 - ห้องเรียน</div>
-        <div class="tl-step" id="tl-2">DAY 02 - โดม</div>
+        <div class="tl-step" id="tl-1">DAY 01 - ห้องเรียน</div>
+        <div class="tl-step" id="tl-2">DAY 02 - โดมกีฬา</div>
     </div>
     <div id="globalStatus">
-        <div class="day-box" id="dayText">DAY 01</div>
-        <div class="time-box">MORNING</div>
+        <div class="day-box" id="dayLabel">DAY 01</div>
     </div>
 </div>
 
 <div id="lobby" class="screen active">
-    <div style="text-align: center; margin-bottom: 40px;">
-        <h1 style="letter-spacing: 12px; font-weight: 200; margin: 0; font-size: 3rem;">LOMNUER</h1>
-        <p style="color: var(--primary); letter-spacing: 3px; font-size: 0.8rem;">LOVE LOVE MYSTERY CLUB</p>
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="letter-spacing: 10px; font-weight: 200; font-size: 2.5rem; margin: 0;">LOMNUER</h1>
+        <p style="color: var(--primary); font-size: 0.7rem;">LOVE LOVE MYSTERY CLUB</p>
     </div>
     <button class="play-btn" onclick="startGame()">START</button>
 </div>
 
 <div id="map-screen" class="screen">
-    <div id="marker-b1" class="map-marker" style="top:51%; left:43%;" onclick="openProfile('ลมเหนือ','โปรไฟล์ลมเหนือ.jpg','คนชอบเกมและตลก มักจะสิงอยู่ที่ห้องเรียน B1', startIntro)">B1</div>
-    <div id="marker-dome" class="map-marker" style="top:70%; left:48%; display:none; background:var(--secondary);" onclick="openProfile('โดม','โปรไฟล์โดม.jpg','จุดนัดพบที่โดมกีฬา ตามที่ลมเหนือบอกไว้', startDomeEvent)">D</div>
-
-    <div id="profileModal">
-        <div class="pf-avatar" id="pfAvatar"></div>
-        <div class="pf-name" id="pfName">---</div>
-        <div class="pf-bio" id="pfBio">---</div>
-        <div class="pf-btns">
-            <button class="btn-pf start" id="pfAction">START</button>
-            <button class="btn-pf cancel" onclick="closeProfile()">CANCEL</button>
-        </div>
-    </div>
+    <div id="marker-b1" class="map-marker" style="top:50%; left:40%;" onclick="showProfile('ลมเหนือ','โปรไฟล์ลมเหนือ.jpg','ชอบเล่นเกมและตลก มักจะอยู่ที่ห้อง B1', startDay1)">B1</div>
+    <div id="marker-dome" class="map-marker" style="top:65%; left:55%; display:none; background:var(--secondary);" onclick="showProfile('โดมกีฬา','โปรไฟล์โดม.jpg','จุดนัดพบตามที่ลมเหนือบอก', startDay2)">D</div>
 </div>
 
 <div id="video-screen" class="screen">
     <video id="vPlayer" playsinline></video>
     <div id="call-overlay">
-        <div class="call-card">
-            <div class="call-pfp"></div>
-            <h2 id="callTarget">ลมเหนือ</h2>
-            <p style="opacity:0.6; font-size: 0.9rem;">สายเรียกเข้าผ่านวิดีโอ...</p>
-            <div class="call-btns">
-                <button class="c-btn decline" onclick="declineCall()">✕</button>
-                <button class="c-btn accept" onclick="answerCall()">📱</button>
-            </div>
+        <div class="call-pfp"></div>
+        <h2 style="margin:0;">ลมเหนือ</h2>
+        <p style="color:#888;">Incoming Video Call...</p>
+        <div style="display:flex; gap:40px; margin-top:30px;">
+            <button onclick="answerCall()" style="width:70px; height:70px; border-radius:50%; background:#4cd964; border:none; color:white; font-size:1.5rem;">📞</button>
+            <button onclick="location.reload()" style="width:70px; height:70px; border-radius:50%; background:#ff3b30; border:none; color:white; font-size:1.5rem;">✕</button>
         </div>
     </div>
 </div>
 
 <div id="choice-screen" class="screen">
-    <div class="choice-list">
-        <button class="btn-choice" onclick="goTo('chat-screen', runChatDay1)">📱 ทัก LINE ไปจีบ</button>
-        <button class="btn-choice" style="color:var(--primary); border-color:var(--primary);" onclick="playPrison()">👊 เข้าไปกระทืบลมเหนือ</button>
-    </div>
+    <div class="choice-list" id="choiceList"></div>
 </div>
 
 <div id="chat-screen" class="screen">
-    <div class="chat-head">
-        <div id="chatAvatar" style="width:45px; height:45px; border-radius:50%; background:url('โปรไฟล์ลมเหนือ.jpg') center/cover; margin-right:15px;"></div>
-        <div id="chatName" style="font-weight:600; font-size:1.1rem;">ลมเหนือ</div>
+    <div style="padding:15px; background:#1a1b22; display:flex; align-items:center; border-bottom:1px solid #333;">
+        <div id="chatPfp" style="width:40px; height:40px; border-radius:50%; background-size:cover; margin-right:12px;"></div>
+        <div id="chatName" style="font-weight:600;">---</div>
     </div>
     <div class="chat-body" id="chatBox"></div>
     <div id="chatInputArea" class="chat-input-area"></div>
 </div>
 
-<div id="result-screen" class="screen">
-    <div class="result-card">
-        <h1 id="resTitle" style="color:var(--primary); font-size:2.2rem;">DAY CLEAR</h1>
-        <div id="resBody" style="margin:25px 0; line-height:1.7;"></div>
-        <button class="btn-choice" style="width:100%;" onclick="location.reload()">เริ่มใหม่</button>
-    </div>
-</div>
-
-<div id="damOverlay">
-    <div class="dam-box">
-        <img src="ดำ.jpg" alt="ดำ">
-        <div style="display:flex; flex-direction:column; gap:12px;">
-            <button class="btn-choice" onclick="chooseDamIG()">1. ขอไอจีจากลมเหนือ</button>
-            <button class="btn-choice" onclick="chooseDamIgnore()">2. ไม่สนใจ ดำกลับไปหาลมเหนือดีกว่า</button>
-        </div>
-    </div>
-</div>
-
 <div id="ig-screen" class="screen">
     <div class="ig-card">
-        <div style="padding:15px; display:flex; align-items:center; gap:12px; border-bottom:1px solid #eee;">
-            <div style="width:40px; height:40px; border-radius:50%; background:url('โปรไฟล์ดำ.jpg') center/cover;"></div>
-            <span style="font-weight:700;">dammaybe</span>
-        </div>
-        <div style="width:100%; height:450px; background:url('ดำ.jpg') center/cover;"></div>
-        <div style="padding:15px;">
-            <p><b>dammaybe</b> ดำจัง แต่ก็หล่อ...</p>
-            <div style="display:flex; gap:10px; margin-top:15px;">
-                <button class="btn-pf start" style="border-radius:8px;" onclick="openDM()">ส่งข้อความ</button>
-                <button class="btn-pf cancel" style="border-radius:8px; color:#000;" onclick="goTo('map-screen')">กลับ</button>
+        <div style="padding:15px; text-align:center; font-weight:700; border-bottom:1px solid #222;">dammaybe</div>
+        <div class="ig-header">
+            <div class="ig-pfp"></div>
+            <div style="flex:1; display:flex; justify-content:space-around; text-align:center;">
+                <div><b>12</b><br><small>Posts</small></div>
+                <div><b>8.4K</b><br><small>Followers</small></div>
+                <div><b>150</b><br><small>Following</small></div>
             </div>
+        </div>
+        <div style="padding:0 20px;">
+            <b>น้ำชา (ดำ)</b><br>
+            <span style="color:#aaa;">Engineering Student ⚙️ | Smart is Sexy.<br>ภูมิใจที่ "ดำ"</span>
+        </div>
+        <div style="display:flex; gap:10px; padding:20px;">
+            <button class="ig-btn" style="background:#0095f6; color:#fff;">Follow</button>
+            <button class="ig-btn" style="background:#333; color:#fff;" onclick="startIGChat()">Message</button>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:2px;">
+            <div style="aspect-ratio:1/1; background:url('ดำ.jpg') center/cover;"></div>
+            <div style="aspect-ratio:1/1; background:url('ดำ8.jpg') center/cover;"></div>
+            <div style="aspect-ratio:1/1; background:url('มึงดำ.jpg') center/cover;"></div>
         </div>
     </div>
 </div>
 
-<audio id="sndBgm" src="https://www.chosic.com/wp-content/uploads/2021/04/Rainy-Day.mp3" loop></audio>
 <audio id="sndMsg" src="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3"></audio>
-<audio id="sndCall" src="https://assets.mixkit.co/active_storage/sfx/1350/1350-preview.mp3" loop></audio>
 
 <script>
 const v = document.getElementById('vPlayer');
 const f = document.getElementById('fadeLayer');
 const nar = document.getElementById('narration');
-const bgm = document.getElementById('sndBgm');
-const callSnd = document.getElementById('sndCall');
 const msgSnd = document.getElementById('sndMsg');
 
-let rel = { lomneua: 85, dam: 0 };
 let currentDay = 1;
 
+// --- SYSTEM ---
 function goTo(id, callback) {
     f.style.opacity = '1';
     setTimeout(() => {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-
-        // Logic: Show Top HUD only on Map Screen
         const topUI = document.getElementById('topUI');
         if (id === 'map-screen') {
             topUI.style.display = 'flex';
-            document.querySelectorAll('.tl-step').forEach(t => t.classList.remove('active'));
             document.getElementById('tl-' + currentDay).classList.add('active');
-        } else {
-            topUI.style.display = 'none';
-        }
-
+            document.getElementById('dayLabel').innerText = "DAY 0" + currentDay;
+        } else { topUI.style.display = 'none'; }
         if (callback) callback();
         f.style.opacity = '0';
     }, 600);
 }
 
-function startGame() {
-    bgm.play().catch(() => {});
-    goTo('map-screen');
+function showNarration(text, cb) {
+    document.getElementById('narrText').innerText = text;
+    nar.style.display = 'flex';
+    setTimeout(() => { nar.style.display = 'none'; if(cb) cb(); }, 3500);
 }
 
-function openProfile(name, avatar, bio, onStart) {
-    document.getElementById('pfName').innerText = name;
-    document.getElementById('pfBio').innerText = bio;
-    document.getElementById('pfAvatar').style.backgroundImage = `url('${avatar}')`;
-    document.getElementById('pfAction').onclick = () => {
-        closeProfile();
-        onStart();
-    };
-    document.getElementById('profileModal').style.display = 'block';
+function showProfile(name, pfp, bio, onStart) {
+    // ใช้ Prompt ง่ายๆ หรือสร้าง Modal
+    if(confirm(`${name}\n${bio}\n\nต้องการเริ่มเหตุการณ์นี้ใช่หรือไม่?`)) onStart();
 }
 
-function closeProfile() { document.getElementById('profileModal').style.display = 'none'; }
+function startGame() { goTo('map-screen'); }
 
-// --- DAY 1 FLOWS ---
-function startIntro() {
+// --- DAY 01 FLOW ---
+function startDay1() {
     goTo('video-screen', () => {
         v.src = "วิดีโอรวมอินโทรและตัดไปที่ลมเหนือเล่นเกม.mp4";
-        v.load(); v.play();
-        v.onended = () => goTo('choice-screen');
-    });
-}
-
-function playPrison() {
-    goTo('video-screen', () => {
-        v.src = "ลมเหนือทืบ.mp4";
-        v.load(); v.play();
+        v.play();
         v.onended = () => {
-            alert("ติดคุกค่ะ! ห้ามรุนแรงกับลมเหนือนะคะ");
-            location.reload();
+            setChoices('ภาพนิ่งฉากแรกตอนทางเลือก.jpg', [
+                { text: "📱 ทัก LINE ไปหาลมเหนือ", action: chatLomDay1 },
+                { text: "👊 เข้าไปกระทืบลมเหนือ", action: () => { alert("คุณถูกจับเข้าคุก!"); location.reload(); } }
+            ]);
         };
     });
 }
 
-async function runChatDay1() {
-    const box = document.getElementById('chatBox'); box.innerHTML = '';
-    await addMsg('me', 'สวัสดีค่ะ ลมเหนือหรือเปล่าคะ?');
-    await addMsg('him', 'ใช่ครับ ใครเหรอ ทักมาถูกจังหวะจัง');
-    await addMsg('me', 'หยกเองค่ะ คนที่แอบมองลมเหนือที่อาคาร 1 เมื่อกี้ไง');
-    await addMsg('him', 'อ๋อออ หยกนี่เอง นึกว่าจะไม่ทักมาซะแล้ว');
-    showChatOptions([
-        { t: '"ก็น่ารักขนาดนั้น จะไม่ทักได้ยังไงล่ะคะ"', next: 1 },
-        { t: '"หยกอยากรู้จักลมเหนือให้มากกว่านี้จัง"', next: 2 }
-    ]);
-}
-
-// --- DAY 2 FLOWS (FIXED) ---
-function startDay2Transition() {
-    currentDay = 2;
-    document.getElementById('dayText').innerText = "DAY 02";
-    showNarration("เช้าวันต่อมา...", () => {
-        // แก้ไข: เล่นวิดีโอ Day 2 ทันทีหลังจาก Narration
-        goTo('video-screen', () => {
-            v.src = "บ้านผม1.mp4";
-            v.load(); 
-            v.play();
-            v.onended = () => {
-                // โชว์สายเรียกเข้าเมื่อวิดีโอจบ
-                document.getElementById('call-overlay').style.display = 'flex';
-                callSnd.play();
-            };
-        });
-    });
-}
-
-function answerCall() {
-    callSnd.pause();
-    document.getElementById('call-overlay').style.display = 'none';
-    showChatOptions([
-        { t: '"ฮัลโหลค่ะ... โทรมาปลุกหยกเหรอคะ?"', next: 'call1' },
-        { t: '"ขอโทษนะคะลมเหนือ หยกเพิ่งตื่นเอง!"', next: 'call2' }
-    ]);
-}
-
-function declineCall() {
-    callSnd.pause();
-    document.getElementById('call-overlay').style.display = 'none';
-    showNarration("คุณพลาดสายจากลมเหนือ...", () => goTo('map-screen'));
-}
-
-function startDomeEvent() {
-    goTo('video-screen', () => {
-        v.src = "วิดีโอลมเหนือถาม.mp4";
-        v.load(); v.play();
-        v.onended = () => {
-            // ต่อด้วยวิดีโอไอ้ดำ
-            v.src = "ไอ้ดำ.mp4";
-            v.load(); v.play();
-            v.onended = () => {
-                document.getElementById('damOverlay').style.display = 'flex';
-            };
-        };
-    });
-}
-
-function chooseDamIG() {
-    document.getElementById('damOverlay').style.display = 'none';
-    rel.dam += 40;
-    rel.lomneua += 5;
-    showNarration("ได้ไอจีแล้ว! ไปส่องโพสต์ของดำกันเถอะ", () => goTo('ig-screen'));
-}
-
-function chooseDamIgnore() {
-    document.getElementById('damOverlay').style.display = 'none';
-    rel.lomneua -= 30;
-    showResultCard("GAME OVER", "ลมเหนือบังคับเอาดำ แต่คุณไม่สนใจ เขาจึงเลิกคุยกับคุณ");
-    goTo('result-screen');
-}
-
-async function openDM() {
+function chatLomDay1() {
     goTo('chat-screen', async () => {
-        document.getElementById('chatName').innerText = "ดำ";
-        document.getElementById('chatAvatar').style.backgroundImage = "url('โปรไฟล์ดำ.jpg')";
-        const box = document.getElementById('chatBox'); box.innerHTML = '';
-        await addMsg('him', 'เฮ้ย ใครเนี่ยมาส่อง?');
-        await addMsg('me', 'หยกเองค่ะ เห็นโพสต์แล้วมาสวัสดี');
-        await addMsg('him', 'โอ๊ะ น่ารักจัง ว่างไหมจะชวนไปกินกาแฟ');
-        await addMsg('me', 'ไปสิคะ ไปด้วยกันสิ');
-        await addMsg('him', 'โอเค นัดคืนนี้นะ');
-        setTimeout(() => {
-            showResultCard("DAY 02 CLEAR", "คุณได้นัดกับดำในคืนนี้ ความสัมพันธ์กำลังพัฒนา...");
-            goTo('result-screen');
-        }, 2000);
+        setupChat('ลมเหนือ', 'โปรไฟล์ลมเหนือ.jpg');
+        await addMsg('him', 'ว่าไงครับ ทักมาถูกจังหวะจัง');
+        await addMsg('me', 'หยกเองนะ ที่แอบมองเมื่อกี้');
+        await addMsg('him', 'อ๋ออ นึกว่าจะไม่ทักมาซะแล้วนะเนี่ย');
+        showChatOptions([
+            { t: "ก็น่ารักขนาดนี้ ไม่ทักได้ยังไงคะ", next: () => endDay1("เขินจังครับ.. พรุ่งนี้มาหาผมที่โดมนะ") },
+            { t: "อยากรู้จักลมเหนือมากกว่านี้จัง", next: () => endDay1("งั้นพรุ่งนี้มาเจอผมที่โดมนะ มีอะไรจะโชว์") }
+        ]);
     });
+}
+
+function endDay1(reply) {
+    addMsg('him', reply).then(() => {
+        setTimeout(() => {
+            showNarration("จบวันที่ 1... ความสัมพันธ์เริ่มก่อตัว", () => {
+                currentDay = 2;
+                document.getElementById('marker-b1').style.display = 'none';
+                document.getElementById('marker-dome').style.display = 'flex';
+                goTo('map-screen');
+            });
+        }, 1500);
+    });
+}
+
+// --- DAY 02 FLOW (REVISED AS REQUESTED) ---
+function startDay2() {
+    // เล่นวิดีโอเปิดฉาก
+    goTo('video-screen', () => {
+        v.src = "ฉากแรก ถามลมดีมั้ย.mp4";
+        v.play();
+        v.onended = () => {
+            // จบวิดีโอแรก ค้างที่ภาพ ลมนิ่ง.jpg
+            setChoices('ลมนิ่ง.jpg', [
+                { text: "1. ถามลมเหนือเรื่องวิทย์ฯ", action: askScience },
+                { text: "2. คุยกับดำ แทน ลมเหนือ", action: talkToDam }
+            ]);
+        };
+    });
+}
+
+// ทางเลือกที่ 1: ถามลม
+function askScience() {
+    goTo('video-screen', () => {
+        v.src = "ลมโง่.mp4";
+        v.play();
+        v.onended = () => {
+            // จบแล้วค้างภาพ มึงดำ.jpg
+            setChoices('มึงดำ.jpg', [
+                { text: "1. ขอไอจีดำตรงๆ เลย", action: () => getDamIG("ตรงๆ เลยนะ เราอยากได้ไอจี") },
+                { text: "2. ให้ลมเหนือช่วยขอไอจีให้", action: () => getDamIG("ลมเหนือ ขอไอจีเพื่อนข้างๆ หน่อย") }
+            ]);
+            showNarration("ลมเหนือตอบไม่ได้เลย.. แต่เพื่อนเขาน่าสนใจแฮะ");
+        };
+    });
+}
+
+// ทางเลือกที่ 2: คุยกับดำ
+function talkToDam() {
+    goTo('video-screen', () => {
+        v.src = "ไอ้ดำ11.mp4";
+        v.play();
+        v.onended = () => {
+            // จบแล้วค้างภาพ ดำ8.jpg
+            goTo('choice-screen', () => {
+                document.getElementById('choice-screen').style.backgroundImage = "url('ดำ8.jpg')";
+                showNarration("เก่งจังเลยนายเนี่ย ดำแต่ก็เก่งนะ", () => {
+                    renderChoices([
+                        { text: "1. ขอไอจีหน่อยได้ไหมคะ?", action: () => getDamIG("สุดยอดไปเลย ขอไอจีไว้ติวหน่อย") },
+                        { text: "2. เลิกเรียกดำ แล้วขอไอจี", action: gameOverDam }
+                    ]);
+                });
+            });
+        };
+    });
+}
+
+function gameOverDam() {
+    showNarration("คุณบอกให้เขาเลิกเรียกตัวเองว่าดำ...", () => {
+        alert("GAME OVER: ดำ (น้ำชา) มั่นใจในสีผิวตัวเองมาก เขาไม่พอใจที่คุณพูดแบบนั้น");
+        location.reload();
+    });
+}
+
+function getDamIG(reason) {
+    showNarration("คุณได้ไอจีของดำมาแล้ว!", () => {
+        goTo('ig-screen');
+    });
+}
+
+// --- IG CHAT (FINAL) ---
+async function startIGChat() {
+    goTo('chat-screen', async () => {
+        setupChat('dammaybe', 'โปรไฟล์ดำ.jpg');
+        await addMsg('him', 'ไงครับ ทักมาจริงด้วย');
+        await addMsg('me', 'ก็คนมันอยากรู้จักนี่นา');
+        await addMsg('him', 'เห็นเมื่อกี้ชมว่าผมเก่ง เขินนะเนี่ย');
+        await addMsg('me', 'ก็เก่งจริงๆ นี่คะ ลมเหนือยังยอมแพ้เลย');
+        await addMsg('him', 'รายนั้นเขาสายเกมครับ ผมมันสายวิชาการ');
+        await addMsg('him', 'ว่าแต่.. ชอบคนฉลาด หรือชอบคนตลกครับ?');
+        
+        showChatOptions([
+            { t: "ชอบคนฉลาดแบบดำค่ะ", next: async () => {
+                await addMsg('him', 'งั้นผมคงมีลุ้นสิเนี่ย');
+                await addMsg('me', 'ไม่แค่ลุ้นหรอกค่ะ จีบได้เลย');
+                finishGame();
+            }},
+            { t: "ชอบคนตลกที่ฉลาดแบบดำค่ะ", next: async () => {
+                await addMsg('him', 'โลภนะเราเนี่ย 555');
+                await addMsg('me', 'ก็ของดีใครๆ ก็อยากได้');
+                finishGame();
+            }}
+        ]);
+    });
+}
+
+function finishGame() {
+    setTimeout(() => {
+        showNarration("Day 02 Clear! คุณเข้าใกล้หัวใจของน้ำชาไปอีกขั้น", () => {
+            alert("ยินดีด้วย! คุณจบ Day 2 ของ Love Love Mystery Club แล้ว");
+            location.reload();
+        });
+    }, 3000);
 }
 
 // --- UTILS ---
+function setChoices(bg, list) {
+    goTo('choice-screen', () => {
+        document.getElementById('choice-screen').style.backgroundImage = `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('${bg}')`;
+        renderChoices(list);
+    });
+}
+
+function renderChoices(list) {
+    const el = document.getElementById('choiceList');
+    el.innerHTML = '';
+    list.forEach(item => {
+        const b = document.createElement('button');
+        b.className = 'btn-choice';
+        b.innerText = item.text;
+        b.onclick = item.action;
+        el.appendChild(b);
+    });
+}
+
+function setupChat(name, pfp) {
+    document.getElementById('chatName').innerText = name;
+    document.getElementById('chatPfp').style.backgroundImage = `url('${pfp}')`;
+    document.getElementById('chatBox').innerHTML = '';
+}
+
 async function addMsg(side, text) {
     const box = document.getElementById('chatBox');
-    const row = document.createElement('div');
-    row.style.display = 'flex';
-    row.style.justifyContent = side === 'me' ? 'flex-end' : 'flex-start';
-    row.innerHTML = `<div class="msg ${side}">${text}</div>`;
-    box.appendChild(row);
+    const d = document.createElement('div');
+    d.style.display = 'flex';
+    d.style.justifyContent = side === 'me' ? 'flex-end' : 'flex-start';
+    d.innerHTML = `<div class="msg ${side}">${text}</div>`;
+    box.appendChild(d);
     msgSnd.currentTime = 0; msgSnd.play().catch(()=>{});
     box.scrollTop = box.scrollHeight;
-    await new Promise(r => setTimeout(r, 1400));
+    await new Promise(r => setTimeout(r, 1500));
 }
 
 function showChatOptions(opts) {
@@ -421,70 +380,12 @@ function showChatOptions(opts) {
     opts.forEach(o => {
         const b = document.createElement('button');
         b.className = 'btn-choice';
-        b.style.padding = "12px";
+        b.style.fontSize = '0.9rem';
         b.innerText = o.t;
-        b.onclick = () => {
-            area.style.display = 'none';
-            handleChoice(o);
-        };
+        b.onclick = () => { area.style.display = 'none'; addMsg('me', o.t).then(o.next); };
         area.appendChild(b);
     });
     area.style.display = 'flex';
-}
-
-async function handleChoice(opt) {
-    if(typeof opt.next === 'string' && opt.next.startsWith('call')) {
-        let response = opt.next === 'call1' ? "ลมเหนือ: ใช่ค่ะ เดี๋ยวมาสายนะ!" : "ลมเหนือ: ตื่นสายนะเรา รีบออกมาเลยค่ะ";
-        showNarration(response, () => {
-            showNarration("ลมเหนือ: วันนี้เราย้ายมาอยู่ที่โดมนะ มาหาเราหน่อย มีเรื่องจะถามค่ะ", () => {
-                document.getElementById('marker-b1').style.display = 'none';
-                document.getElementById('marker-dome').style.display = 'flex';
-                goTo('map-screen');
-            });
-        });
-        return;
-    }
-
-    await addMsg('me', opt.t);
-    if (opt.next === 1) {
-        await addMsg('him', 'พูดตรงไปมั้ยเนี่ย... ผมเขินนะคะ');
-        await addMsg('him', 'แล้วจะมาหาผมอีกมั้ยครับ?');
-        showChatOptions([
-            { t: '"ถ้าอยากให้ไปหา หยกก็จะไปหาทุกวันเลยค่ะ"', next: 3 },
-            { t: '"ขอดูก่อนนะว่าลมเหนือจะใจดีกับหยกมั้ย"', next: 3 }
-        ]);
-    } else if (opt.next === 2) {
-        await addMsg('him', 'อยากรู้จักแค่ไหนล่ะคะ?');
-        await addMsg('me', 'อยากรู้จักถึงขั้นที่เดินจูงมือกันได้เลยค่ะ');
-        await addMsg('him', 'แรงนะเราน่ะ... งั้นพรุ่งนี้ลองมาหาที่เดิมสิ');
-        setTimeout(() => {
-            showResultCard("DAY 1 CLEAR", "พรุ่งนี้มีนัดกับลมเหนือ! ความสัมพันธ์: " + rel.lomneua + "%");
-            goTo('result-screen', () => { currentDay = 2; });
-            // เตรียมเปลี่ยนเป็นวันที่ 2
-            setTimeout(() => startDay2Transition(), 3000);
-        }, 1500);
-    } else if (opt.next === 3) {
-        await addMsg('him', 'ปากหวานจังนะคะ... งั้นพรุ่งนี้เจอกันที่เดิมนะ');
-        setTimeout(() => {
-            showResultCard("DAY 1 CLEAR", "ความสัมพันธ์กับลมเหนือเพิ่มขึ้น! ความสัมพันธ์: " + rel.lomneua + "%");
-            goTo('result-screen');
-            setTimeout(() => startDay2Transition(), 3000);
-        }, 1500);
-    }
-}
-
-function showNarration(txt, cb) {
-    nar.innerHTML = `<div>${txt}</div>`;
-    nar.style.display = 'flex';
-    setTimeout(() => {
-        nar.style.display = 'none';
-        if (cb) cb();
-    }, 3000);
-}
-
-function showResultCard(title, body) {
-    document.getElementById('resTitle').innerText = title;
-    document.getElementById('resBody').innerHTML = body + `<br><br><b>Heart Points:</b><br>ลมเหนือ: ${rel.lomneua} | ดำ: ${rel.dam}`;
 }
 </script>
 </body>
